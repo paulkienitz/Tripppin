@@ -1,0 +1,54 @@
+# this makefile is for Aztec 5.0+ only.  "II" is a precompiled header file
+# including <exec/exec.h>, <dos/dosextens.h>, exec and dos prototypes and
+# pragmas, and a few miscellaneous headers like <string.h>.  "INTU" is a
+# precompiled header file including all that plus <intuition/intuition.h> and
+# complete pragmas and prototypes for all standard libraries.
+
+C = -wp
+
+# this makes the final no-debug version:
+
+ram\:Tripppin : trip.o board.o event.o menu.o jrdobbs.o
+	ln +q -o ram:Tripppin trip.o menu.o board.o event.o jrdobbs.o -lc
+	@dr -l ram:trip\#?
+
+trip.o : trip.c trip.h
+	cc $C -hi II trip
+
+menu.o : menu.c trip.h
+	cc $C -hi INTU menu
+
+board.o : board.c trip.h
+	cc $C -hi II board
+
+event.o : event.c trip.h
+	cc $C -hi INTU event
+
+jrdobbs.o : jrdobbs.c trip.h
+	cc $C -hi INTU jrdobbs
+
+
+# this is for debugging with SDB or DB:
+
+P = $C -d private=
+
+s : ram:strip
+
+ram\:strip : dtrip.o dboard.o devent.o dmenu.o djrdobbs.o
+	ln +q -w -g -o ram:strip dtrip.o dmenu.o dboard.o devent.o djrdobbs.o -lc
+	@dr -l ram:strip\#?
+
+dtrip.o : trip.c trip.h
+	cc -bs -s0f0n -o dtrip.o -hi II $P trip
+
+dmenu.o : menu.c trip.h
+	cc -bs -s0f0n -o dmenu.o -hi INTU $P menu
+
+dboard.o : board.c trip.h
+	cc -bs -s0f0n -o dboard.o -hi II $P board
+
+devent.o : event.c trip.h
+	cc -bs -s0f0n -o devent.o -hi INTU $P event
+
+djrdobbs.o : jrdobbs.c trip.h
+	cc -bs -s0f0n -o djrdobbs.o -hi INTU $P jrdobbs
